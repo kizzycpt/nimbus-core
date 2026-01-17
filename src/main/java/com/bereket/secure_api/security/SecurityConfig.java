@@ -27,13 +27,10 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/health", "/register", "/login").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(h -> h.disable())
-            .formLogin(f -> f.disable());
             .addFilterBefore(
                 new JwtAuthFilter(jwtUtil.getSecretKey()),
                 UsernamePasswordAuthenticationFilter.class
