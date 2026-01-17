@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .requestMatchers("/health", "/register", "/login").permitAll()
                 .anyRequest().authenticated()
             )
+            .httpBasic(h -> h.disable())
+            .formLogin(f -> f.disable());
             .addFilterBefore(
                 new JwtAuthFilter(jwtUtil.getSecretKey()),
                 UsernamePasswordAuthenticationFilter.class
