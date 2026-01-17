@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://secure-api-db.cbg4ma8ggmkj.us-east-2.rds.amazonaws.com:5432/secureapi
+    username: postgres
+    password: 123KOgamers$
 
   jpa:
     properties:
@@ -13,7 +13,7 @@ spring:
     show-sql: false
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: chicken
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: 8080
