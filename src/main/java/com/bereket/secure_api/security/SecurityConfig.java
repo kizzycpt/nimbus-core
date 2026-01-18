@@ -9,6 +9,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.bereket.secure_api.jwt.JwtAuthFilter;
 import com.bereket.secure_api.jwt.JwtUtil;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
+
 
 @Configuration
 public class SecurityConfig {
@@ -26,10 +29,15 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
+	    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/health", "/register", "/login").permitAll()
+		.requestMatchers("/error").permitAll()
+                .requestMatchers(HttpMethod.GET, "/health").permitAll()
+		.requestMatchers(HttpMethod.POST, "/register", "/login").permitAll()
                 .anyRequest().authenticated()
             )
+            .httpBasic(h -> h.disable())
+            .formLogin(f -> f.disable())
             .addFilterBefore(
                 new JwtAuthFilter(jwtUtil.getSecretKey()),
                 UsernamePasswordAuthenticationFilter.class
