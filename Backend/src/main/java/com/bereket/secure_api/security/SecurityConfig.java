@@ -33,10 +33,12 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .cors(cors -> {})
 	    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 		.requestMatchers("/error").permitAll()
+        .requestMatchers("/h2-console/**").permitAll()//
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/health").permitAll()
 		.requestMatchers(HttpMethod.POST, "/register", "/login").permitAll()

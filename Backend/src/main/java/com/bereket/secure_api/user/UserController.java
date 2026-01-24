@@ -1,5 +1,6 @@
 package com.bereket.secure_api.user;
 
+import java.util.Map;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +41,7 @@ public class UserController {
         );
     }
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         return userRepository.findByUsername(request.getUsername())
             .filter(user ->
                 passwordEncoder.matches(
@@ -50,7 +51,7 @@ public class UserController {
             )
             .map(user -> {
                 String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-                return ResponseEntity.ok(token);
+                return ResponseEntity.ok(Map.of("token", token));
             })
             .orElse(ResponseEntity.status(401).build());
     }
