@@ -9,8 +9,10 @@ function App() {
       const res = await fetch("http://localhost:8080/health");
       const text = await res.text();
       setData(text);
+      setError(null);
     } catch (err) {
       setError("Failed to reach backend");
+      setData(null);
     }
   };
 
