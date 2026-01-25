@@ -1,12 +1,16 @@
 package com.bereket.secure_api.user;
 
+import org.springframework.security.core.Authentication;
 import java.util.Map;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import com.bereket.secure_api.jwt.JwtUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @RestController
 public class UserController {
@@ -22,23 +26,33 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
-
+    @GetMapping("/me")
+    public Map<String, String> me(Authentication authentication) {
+        return Map.of("username", authentication.getName());
+    }
     @PostMapping("/register")
-    public UserResponse register(@RequestBody User user) {
-        String hashedPassword =
-        passwordEncoder.encode(user.getPassword());
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            String hashedPassword = passwordEncoder.encode(user.getPassword());
 
-        User newUser = new User(
-        user.getUsername(),
-        hashedPassword
-        );
+            User newUser = new User(
+                user.getUsername(),
+                hashedPassword
+            );
 
-        User savedUser = userRepository.save(newUser);
+            User savedUser = userRepository.save(newUser);
 
-        return new UserResponse(
-        savedUser.getId(),
-        savedUser.getUsername()
-        );
+            return ResponseEntity.ok(
+                new UserResponse(
+                    savedUser.getId(),
+                    savedUser.getUsername()
+                )
+            );
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body("Username already exists");
+        }
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

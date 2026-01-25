@@ -12,6 +12,17 @@ function App() {
   const [registerMsg, setRegisterMsg] = useState(null);
   const [loginMsg, setLoginMsg] = useState(null);
   const [token, setToken] = useState(null);
+  const authFetch = (url, options = {}) => {
+    const headers = {
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  
+    return fetch(url, {
+      ...options,
+      headers,
+    });
+  };
 
   const callHealth = async () => {
     try {
@@ -25,6 +36,18 @@ function App() {
     }
   };
 
+  // Protected request: getMe using authFetch
+  const getMe = async () => {
+    try {
+      const res = await authFetch("http://localhost:8080/me");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      alert(`Hello ${data.username}`);
+    } catch {
+      alert("Unauthorized or failed to fetch user");
+    }
+  };
+
   const register = async () => {
     try {
       const res = await fetch("http://localhost:8080/register", {
@@ -33,7 +56,14 @@ function App() {
         body: JSON.stringify({ username, password })
       });
 
+      if (res.status === 409) {
+        setRegisterMsg(null);
+        setRegisterError("Username already exists. Try a different one.");
+        return;
+      }
+
       if (!res.ok) throw new Error();
+
       setRegisterMsg("Registered successfully");
       setRegisterError(null);
     } catch {
@@ -104,6 +134,9 @@ function App() {
 
       {loginMsg && <p>{loginMsg}</p>}
       {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+
+      <h2>Protected</h2>
+      <button onClick={getMe}>Call /me</button>
     </div>
   );
 }
