@@ -35,3 +35,20 @@ build/
 src/main/resources/application-prod.yml
 src/main/resources/application.properties
 .DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+*.log
+
+# OS / tooling noise
+.DS_Store
+Thumbs.db
+
+# Frontend build
+Frontend/dist
+Frontend/node_modules
