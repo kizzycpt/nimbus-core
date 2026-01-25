@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import com.bereket.secure_api.jwt.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.util.StringUtils;
 
 @RestController
 public class UserController {
@@ -32,6 +33,11 @@ public class UserController {
     }
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        if (!StringUtils.hasText(user.getUsername()) || !StringUtils.hasText(user.getPassword())) {
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("Username and password must not be empty");
+        }
         try {
             String hashedPassword = passwordEncoder.encode(user.getPassword());
 
@@ -56,6 +62,9 @@ public class UserController {
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         return userRepository.findByUsername(request.getUsername())
             .filter(user ->
                 passwordEncoder.matches(

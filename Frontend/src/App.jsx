@@ -12,6 +12,11 @@ function App() {
   const [registerMsg, setRegisterMsg] = useState(null);
   const [loginMsg, setLoginMsg] = useState(null);
   const [token, setToken] = useState(null);
+
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [meUser, setMeUser] = useState(null);
+
   const authFetch = (url, options = {}) => {
     const headers = {
       ...(options.headers || {}),
@@ -42,14 +47,28 @@ function App() {
       const res = await authFetch("http://localhost:8080/me");
       if (!res.ok) throw new Error();
       const data = await res.json();
-      alert(`Hello ${data.username}`);
+      setMeUser(data.username);
     } catch {
-      alert("Unauthorized or failed to fetch user");
+      setMeUser(null);
     }
   };
 
+  const logout = () => {
+    setToken(null);
+    setMeUser(null);
+    setLoginMsg(null);
+    setLoginError(null);
+  };
+
   const register = async () => {
+    if (!username.trim() || !password.trim()) {
+      setRegisterError("Username and password cannot be empty.");
+      setRegisterMsg(null);
+      return;
+    }
     try {
+      setRegisterLoading(true);
+
       const res = await fetch("http://localhost:8080/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,14 +85,20 @@ function App() {
 
       setRegisterMsg("Registered successfully");
       setRegisterError(null);
+      setUsername("");
+      setPassword("");
     } catch {
       setRegisterMsg(null);
       setRegisterError("Registration failed");
+    } finally {
+      setRegisterLoading(false);
     }
   };
 
   const login = async () => {
     try {
+      setLoginLoading(true);
+
       const res = await fetch("http://localhost:8080/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,9 +111,13 @@ function App() {
       setToken(data.token);
       setLoginMsg("Login successful");
       setLoginError(null);
+      setLoginUsername("");
+      setLoginPassword("");
     } catch {
       setLoginMsg(null);
       setLoginError("Login failed");
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -96,7 +125,7 @@ function App() {
     <div style={{ padding: 20 }}>
       <h1>API GUI</h1>
 
-      <h2>Health</h2>
+    <h2>Health</h2>
       <button onClick={callHealth}>Call /health</button>
       {health && <p>Response: {health}</p>}
 
@@ -112,7 +141,9 @@ function App() {
         value={password}
         onChange={e => setPassword(e.target.value)}
       />
-      <button onClick={register}>Register</button>
+      <button onClick={register} disabled={registerLoading}>
+        {registerLoading ? "Registering..." : "Register"}
+      </button>
 
       {registerMsg && <p>{registerMsg}</p>}
       {registerError && <p style={{ color: "red" }}>{registerError}</p>}
@@ -130,13 +161,27 @@ function App() {
          onChange={e => setLoginPassword(e.target.value)}
       />
 
-      <button onClick={login}>Login</button>
+      <button onClick={login} disabled={loginLoading}>
+        {loginLoading ? "Logging in..." : "Login"}
+      </button>
 
       {loginMsg && <p>{loginMsg}</p>}
       {loginError && <p style={{ color: "red" }}>{loginError}</p>}
 
       <h2>Protected</h2>
-      <button onClick={getMe}>Call /me</button>
+      <button onClick={getMe} disabled={!token}>
+        Call /me
+      </button>
+
+      <button onClick={logout} disabled={!token} style={{ marginLeft: 10 }}>
+        Logout
+      </button>
+
+      {meUser && (
+        <p>
+          Logged in as <strong>{meUser}</strong>
+        </p>
+      )}
     </div>
   );
 }
