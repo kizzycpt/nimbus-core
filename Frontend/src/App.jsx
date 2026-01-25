@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 function App() {
   const [health, setHealth] = useState(null);
+  const [error, setError] = useState(null);
   const [registerError, setRegisterError] = useState(null);
   const [loginError, setLoginError] = useState(null);
 
