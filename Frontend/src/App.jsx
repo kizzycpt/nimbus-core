@@ -52,9 +52,8 @@ function App() {
       const res = await fetch("http://localhost:8080/health");
       const text = await res.text();
       setHealth(text);
-      setError(null);
+      
     } catch {
-      setError("Health check failed");
       setHealth(null);
     }
   };
@@ -142,16 +141,22 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 420, margin: "0 auto", fontFamily: "system-ui, sans-serif" }}>
       <h1>API GUI</h1>
 
     <h2>Health</h2>
+    <div style={{ marginBottom: 8 }} />
       <button onClick={callHealth}>Call /health</button>
-      {health && <p>Response: {health}</p>}
+      {health && (
+  <div style={{ marginTop: 8, color: "#555", fontSize: 14 }}>
+    Health response: {health}
+  </div>
+)}
 
       {!token && (
         <>
           <h2>Register</h2>
+          <div style={{ marginBottom: 8 }} />
           <input
             placeholder="username"
             value={username}
@@ -167,14 +172,23 @@ function App() {
             {registerLoading ? "Registering..." : "Register"}
           </button>
 
-          {registerMsg && <p>{registerMsg}</p>}
-          {registerError && <p style={{ color: "red" }}>{registerError}</p>}
+          {registerMsg && (
+  <div style={{ marginTop: 8, color: "green", fontSize: 14 }}>
+    {registerMsg}
+  </div>
+)}
+{registerError && (
+  <div style={{ marginTop: 8, color: "#b00020", fontSize: 14 }}>
+    {registerError}
+  </div>
+)}
         </>
       )}
 
       {!token && (
         <>
           <h2>Login</h2>
+          <div style={{ marginBottom: 8 }} />
           <input
           placeholder="username"
           value={loginUsername}
@@ -191,14 +205,23 @@ function App() {
             {loginLoading ? "Logging in..." : "Login"}
           </button>
 
-          {loginMsg && <p>{loginMsg}</p>}
-          {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+          {loginMsg && (
+  <div style={{ marginTop: 8, color: "green", fontSize: 14 }}>
+    {loginMsg}
+  </div>
+)}
+{loginError && (
+  <div style={{ marginTop: 8, color: "#b00020", fontSize: 14 }}>
+    {loginError}
+  </div>
+)}
         </>
       )}
 
       {token && (
         <>
           <h2>Protected</h2>
+          <div style={{ marginBottom: 8 }} />
           <button onClick={getMe} disabled={!token}>
             Call /me
           </button>
@@ -208,10 +231,10 @@ function App() {
           </button>
 
           {meUser && (
-            <p>
-              Logged in as <strong>{meUser}</strong>
-            </p>
-          )}
+  <div style={{ marginTop: 12, color: "#333", fontSize: 14 }}>
+    Logged in as <strong>{meUser}</strong>
+  </div>
+)}
         </>
       )}
     </div>
