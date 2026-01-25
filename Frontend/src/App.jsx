@@ -11,7 +11,7 @@ function App() {
   const [loginPassword, setLoginPassword] = useState("");
   const [registerMsg, setRegisterMsg] = useState(null);
   const [loginMsg, setLoginMsg] = useState(null);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const [registerLoading, setRegisterLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
@@ -58,6 +58,7 @@ function App() {
     setMeUser(null);
     setLoginMsg(null);
     setLoginError(null);
+    localStorage.removeItem("token");
   };
 
   const register = async () => {
@@ -109,6 +110,7 @@ function App() {
       const data = await res.json();
 
       setToken(data.token);
+      localStorage.setItem("token", data.token);
       setLoginMsg("Login successful");
       setLoginError(null);
       setLoginUsername("");
