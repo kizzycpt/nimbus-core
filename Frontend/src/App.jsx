@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
 function App() {
   const [health, setHealth] = useState(null);
   const [error, setError] = useState(null);
@@ -50,7 +52,7 @@ function App() {
 
   const callHealth = async () => {
     try {
-      const res = await fetch("http://localhost:8080/health");
+      const res = await fetch(`${API_BASE}/health`);
       const text = await res.text();
       setHealth(text);
       
@@ -62,7 +64,7 @@ function App() {
   // Protected request: getMe using authFetch
   const getMe = async () => {
     try {
-      const res = await authFetch("http://localhost:8080/me");
+      const res = await authFetch(`${API_BASE}/me`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setMeUser(data.username);
@@ -88,7 +90,7 @@ function App() {
     try {
       setRegisterLoading(true);
 
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -118,7 +120,7 @@ function App() {
     try {
       setLoginLoading(true);
 
-      const res = await fetch("http://localhost:8080/login", {
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loginUsername, password: loginPassword })
