@@ -14,7 +14,7 @@ This repo is configured to be portable and runnable by anyone using environment 
 - User login with JWT generation
 - JWT-protected endpoints (`/me`, `/protected`)
 - Backend validation (empty input + unique usernames)
-- PostgreSQL database (AWS RDS compatible)
+- PostgreSQL database
 - Spring Security configuration
 - Environment-based configuration
 
