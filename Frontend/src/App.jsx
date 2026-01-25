@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
   const [health, setHealth] = useState(null);
@@ -11,22 +11,40 @@ function App() {
   const [loginPassword, setLoginPassword] = useState("");
   const [registerMsg, setRegisterMsg] = useState(null);
   const [loginMsg, setLoginMsg] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, []);
 
   const [registerLoading, setRegisterLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [meUser, setMeUser] = useState(null);
 
-  const authFetch = (url, options = {}) => {
+  const authFetch = async (url, options = {}) => {
     const headers = {
       ...(options.headers || {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-  
-    return fetch(url, {
+
+    const res = await fetch(url, {
       ...options,
       headers,
     });
+
+    if (res.status === 401) {
+      setToken(null);
+      setMeUser(null);
+      setLoginMsg(null);
+      setLoginError("Session expired. Please log in again.");
+      localStorage.removeItem("token");
+      throw new Error("Unauthorized");
+    }
+
+    return res;
   };
 
   const callHealth = async () => {
@@ -131,58 +149,70 @@ function App() {
       <button onClick={callHealth}>Call /health</button>
       {health && <p>Response: {health}</p>}
 
-      <h2>Register</h2>
-      <input
-        placeholder="username"
-        value={username}
-        onChange={e => setUsername(e.target.value)}
-      />
-      <input
-        placeholder="password"
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
-      <button onClick={register} disabled={registerLoading}>
-        {registerLoading ? "Registering..." : "Register"}
-      </button>
+      {!token && (
+        <>
+          <h2>Register</h2>
+          <input
+            placeholder="username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+          />
+          <input
+            placeholder="password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          <button onClick={register} disabled={registerLoading}>
+            {registerLoading ? "Registering..." : "Register"}
+          </button>
 
-      {registerMsg && <p>{registerMsg}</p>}
-      {registerError && <p style={{ color: "red" }}>{registerError}</p>}
+          {registerMsg && <p>{registerMsg}</p>}
+          {registerError && <p style={{ color: "red" }}>{registerError}</p>}
+        </>
+      )}
 
-      <h2>Login</h2>
-      <input
-      placeholder="username"
-      value={loginUsername}
-      onChange={e => setLoginUsername(e.target.value)}
-      />
-      <input
-         placeholder="password"
-         type="password"
-         value={loginPassword}
-         onChange={e => setLoginPassword(e.target.value)}
-      />
+      {!token && (
+        <>
+          <h2>Login</h2>
+          <input
+          placeholder="username"
+          value={loginUsername}
+          onChange={e => setLoginUsername(e.target.value)}
+          />
+          <input
+             placeholder="password"
+             type="password"
+             value={loginPassword}
+             onChange={e => setLoginPassword(e.target.value)}
+          />
 
-      <button onClick={login} disabled={loginLoading}>
-        {loginLoading ? "Logging in..." : "Login"}
-      </button>
+          <button onClick={login} disabled={loginLoading}>
+            {loginLoading ? "Logging in..." : "Login"}
+          </button>
 
-      {loginMsg && <p>{loginMsg}</p>}
-      {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+          {loginMsg && <p>{loginMsg}</p>}
+          {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+        </>
+      )}
 
-      <h2>Protected</h2>
-      <button onClick={getMe} disabled={!token}>
-        Call /me
-      </button>
+      {token && (
+        <>
+          <h2>Protected</h2>
+          <button onClick={getMe} disabled={!token}>
+            Call /me
+          </button>
 
-      <button onClick={logout} disabled={!token} style={{ marginLeft: 10 }}>
-        Logout
-      </button>
+          <button onClick={logout} disabled={!token} style={{ marginLeft: 10 }}>
+            Logout
+          </button>
 
-      {meUser && (
-        <p>
-          Logged in as <strong>{meUser}</strong>
-        </p>
+          {meUser && (
+            <p>
+              Logged in as <strong>{meUser}</strong>
+            </p>
+          )}
+        </>
       )}
     </div>
   );
