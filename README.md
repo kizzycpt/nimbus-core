@@ -1,65 +1,52 @@
-# Nimbus Core – Cloud-Deployed Secure Backend API
+# Nimbus Core – Cloud-Deployed Backend Service
 
-Nimbus Core is a cloud-deployed service with a strong emphasis on a secure backend API, supported by a minimal frontend GUI for validation. The platform runs on real, self-managed cloud infrastructure with containerized deployment and environment-based configuration.
+Nimbus Core is a cloud-deployed service with a strong emphasis on a secure backend API, supported by a minimal frontend GUI for validation. The platform runs on real, self-managed cloud infrastructure using containerization and environment-based configuration.
 
-This repo is configured to be portable and runnable by anyone using environment variables (no secrets committed).
+This repository is designed to be portable and runnable using environment variables (no secrets committed).
 
 ---
+
 ## Project Roles & Contributions
 
 ### Backend & Application (Bereket)
-- Designed and implemented the core backend API
-- Built JWT-based authentication and protected routes
-- Integrated PostgreSQL and application-level validation
-- Developed a minimal frontend GUI to validate auth flows
-- Structured the project for portability and clarity
-- Documented usage, setup, and API behavior
+- Designed and implemented the core backend API  
+- Implemented JWT-based authentication and protected routes  
+- Integrated PostgreSQL with application-level validation  
+- Built a minimal frontend GUI to validate authentication flows  
+- Structured and documented the project for clarity and portability  
 
 ### Infrastructure & Deployment (Sam)
-- Provisioned and managed the cloud server and infrastructure
-- Containerized services for deployment
-- Configured networking, ports, and runtime environment
-- Integrated the live server with the backend application
-- Ensured system stability and secure access
+- Provisioned and managed cloud server infrastructure  
+- Containerized services for deployment  
+- Configured networking, ports, and runtime environment  
+- Integrated and maintained the live backend system  
 
-## Features
+---
+
+## Core Features
 
 ### Backend
-- User registration with password hashing
-- User login with JWT generation
-- JWT-protected endpoints (`/me`, `/protected`)
-- Backend validation (empty input + unique usernames)
-- PostgreSQL database
-- Spring Security configuration
-- Environment-based configuration
+- User registration and login with JWT authentication  
+- JWT-protected endpoints  
+- PostgreSQL database integration  
+- Environment-based configuration  
 
 ### Frontend
-- React-based GUI
-- Register and Login flows
-- JWT stored securely in localStorage
-- Automatic Authorization header attachment
-- Auto-logout on token expiration (401)
-- Protected UI sections
-- Environment-based API base URL
+- React-based GUI for auth flow validation  
+- Secure JWT handling  
+- Protected UI states and auto-logout  
 
 ---
 
 ## Tech Stack
 
 **Backend**
-- Java
-- Spring Boot
-- Spring Security
-- JWT
-- PostgreSQL (AWS RDS)
-- JPA / Hibernate
-- Maven
+- Java, Spring Boot, Spring Security  
+- JWT, PostgreSQL (self-managed cloud server)  
+- JPA / Hibernate, Maven
 
 **Frontend**
-- React (Vite)
-- JavaScript
-- Fetch API
-
+- React
 ---
 
 ## Project Structure
