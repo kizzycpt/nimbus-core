@@ -43,7 +43,12 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/health").permitAll()
+<<<<<<< HEAD
                 .requestMatchers(HttpMethod.POST, "/register", "/login").permitAll()
+=======
+                .requestMatchers(HttpMethod.GET, "/register", "/login").permitAll()  
+		.requestMatchers(HttpMethod.POST, "/register", "/login").permitAll()
+>>>>>>> 97aa2d6 (Fix SecurityConfig: allow GET/POST for register/login; CORS wired)
                 .anyRequest().authenticated()
             )
             .httpBasic(h -> h.disable())

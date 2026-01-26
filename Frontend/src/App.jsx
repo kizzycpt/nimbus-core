@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
+<<<<<<< HEAD
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
+=======
+const API_BASE = import.meta.env.VITE_API_BASE || "http://100.121.47.123:8080";
+>>>>>>> 97aa2d6 (Fix SecurityConfig: allow GET/POST for register/login; CORS wired)
 
 export default function App() {
   const [health, setHealth] = useState(null);
