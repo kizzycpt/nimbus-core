@@ -4,15 +4,15 @@ Nimbus Core is a cloud-deployed service with a strong emphasis on a secure backe
 
 This repository is designed to be portable and runnable using environment variables (no secrets committed).
 
----
-
-## Project Roles & Contributions
-
 ## Demo Screenshots
 
 ### Frontend Authentication Flow
-![Login Screen](screenshots/api-gui1.jpg)
-![Authenticated State](screenshots/api-gui2.jpg)
+<img src="screenshots/api-gui1.jpg" alt="Login Screen" width="300"/>
+
+<img src="screenshots/api-gui2.jpg" alt="Authenticated State" width="300"/>
+
+
+## Project Roles & Contributions
 
 ### Backend & Application (Bereket)
 - Designed and implemented the core backend API  
