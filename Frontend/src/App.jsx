@@ -1,13 +1,8 @@
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-
-=======
 import { useEffect, useMemo, useState } from "react";
->>>>>>> a565d52 (Fix CORS for Cloudflare + stabilize GUI auth flow)
 
 function App() {
   // --- API base: prefer same-origin (nginx proxies /health,/register,/login,/me)
-  // If you *want* a different backend during dev, set either:
+  // If we're looking for a different backend during dev, set either:
   //   VITE_API_BASE="http://127.0.0.1:8080"
   // or VITE_API_BASE_URL="http://127.0.0.1:8080"
   const API_BASE = useMemo(() => {
@@ -20,15 +15,12 @@ function App() {
 
   // --- UI state
   const [health, setHealth] = useState(null);
-<<<<<<< HEAD
   const [error, setError] = useState(null);
   const [registerError, setRegisterError] = useState(null);
   const [loginError, setLoginError] = useState(null);
   const API_BASE = import.meta.env.VITE_API_BASE ?? "";
-=======
   const [healthError, setHealthError] = useState(null);
 
->>>>>>> a565d52 (Fix CORS for Cloudflare + stabilize GUI auth flow)
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registerMsg, setRegisterMsg] = useState(null);
@@ -244,9 +236,9 @@ function App() {
         lineHeight: 1.4,
       }}
     >
-      <h1 style={{ marginBottom: 6 }}>Nimbus Core — API GUI</h1>
+      <h1 style={{ marginBottom: 6 }}>Nimbus Core</h1>
       <div style={{ fontSize: 13, color: "#555", marginBottom: 18 }}>
-        API base: <code>{API_BASE || "(same-origin)"}</code>
+        API: <code>{API_BASE || "by Bereket Haddish & Samuel Quarm"}</code>
       </div>
 
       {/* HEALTH */}
