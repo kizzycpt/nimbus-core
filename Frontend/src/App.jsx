@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 function App() {
   const [health, setHealth] = useState(null);
   const [error, setError] = useState(null);
   const [registerError, setRegisterError] = useState(null);
   const [loginError, setLoginError] = useState(null);
-
+  const API_BASE = import.meta.env.VITE_API_BASE ?? "";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
