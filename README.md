@@ -8,6 +8,12 @@ This repository is designed to be portable and runnable using environment variab
 
 ## Project Roles & Contributions
 
+## Demo Screenshots
+
+### Frontend Authentication Flow
+![Login Screen](screenshots/api-gui1.jpg)
+![Authenticated State](screenshots/api-gui2.jpg)
+
 ### Backend & Application (Bereket)
 - Designed and implemented the core backend API  
 - Implemented JWT-based authentication and protected routes  
