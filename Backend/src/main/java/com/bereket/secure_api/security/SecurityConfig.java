@@ -54,6 +54,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+<<<<<<< HEAD
     @Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration config = new CorsConfiguration();
@@ -73,4 +74,6 @@ public class SecurityConfig {
 	    source.registerCorsConfiguration("/**", config);
 	    return source;
     }
+=======
+>>>>>>> a565d52 (Fix CORS for Cloudflare + stabilize GUI auth flow)
 }
