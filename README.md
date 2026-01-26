@@ -1,11 +1,26 @@
-# Nimbus Core – Secure API + Frontend
+# Nimbus Core – Cloud-Deployed Secure Backend API
 
-Nimbus Core is a full-stack project consisting of a Spring Boot backend API and a React frontend GUI.  
-It implements secure user registration, login, and JWT-based authentication with protected endpoints.
+Nimbus Core is a cloud-deployed service with a strong emphasis on a secure backend API, supported by a minimal frontend GUI for validation. The platform runs on real, self-managed cloud infrastructure with containerized deployment and environment-based configuration.
 
 This repo is configured to be portable and runnable by anyone using environment variables (no secrets committed).
 
 ---
+## Project Roles & Contributions
+
+### Backend & Application (Bereket)
+- Designed and implemented the core backend API
+- Built JWT-based authentication and protected routes
+- Integrated PostgreSQL and application-level validation
+- Developed a minimal frontend GUI to validate auth flows
+- Structured the project for portability and clarity
+- Documented usage, setup, and API behavior
+
+### Infrastructure & Deployment (Sam)
+- Provisioned and managed the cloud server and infrastructure
+- Containerized services for deployment
+- Configured networking, ports, and runtime environment
+- Integrated the live server with the backend application
+- Ensured system stability and secure access
 
 ## Features
 
