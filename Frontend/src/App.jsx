@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 
-<<<<<<< HEAD
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8080";
-=======
-const API_BASE = import.meta.env.VITE_API_BASE || "http://100.121.47.123:8080";
->>>>>>> 97aa2d6 (Fix SecurityConfig: allow GET/POST for register/login; CORS wired)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export default function App() {
   const [health, setHealth] = useState(null);
@@ -57,7 +53,7 @@ export default function App() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       setHealth(text);
-    } catch (e) {
+    } catch {
       setHealth(null);
       setHealthError("Health check failed");
     }
