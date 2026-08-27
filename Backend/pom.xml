@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.nimbus</groupId>
-	<artifactId>secure-api</artifactId>
+	<artifactId>nimbus-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>secure-api</name>
-	<description>Demo project for Spring Boot</description>
+	<name>nimbus-core</name>
+	<description>Nimbus Core - secure JWT API</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -32,7 +32,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-h2console</artifactId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

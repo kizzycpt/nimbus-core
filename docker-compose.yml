@@ -1,0 +1,109 @@
+# Nimbus Core — three containers, least privilege by default.
+#
+#   db       PostgreSQL. NO published port. Reachable only from `backend`
+#            over an internal (no-egress) network.
+#   backend  Spring Boot API. NO published port. Reachable only via nginx.
+#   web      nginx. The ONLY container with a host port, bound to loopback.
+
+name: nimbus-core
+
+services:
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    # Deliberately no `ports:` — never expose Postgres to the host or LAN.
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # Force SCRAM-SHA-256 for host connections; never trust auth.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    command:
+      - postgres
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - listen_addresses=*
+      - -c
+      - log_connections=on
+      - -c
+      - log_disconnections=on
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - dbnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -q"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_READ_SEARCH, FOWNER, SETGID, SETUID]
+    tmpfs:
+      - /tmp
+      - /run
+
+  backend:
+    build:
+      context: ./Backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # Deliberately no `ports:` — nginx is the only way in.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-600000}
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-}
+    networks:
+      - dbnet
+      - webnet
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+
+  web:
+    build:
+      context: ./Frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      # Loopback only. Put a TLS terminator (cloudflared / Caddy / nginx)
+      # in front of this; change to 0.0.0.0 only if you mean it.
+      - "127.0.0.1:8080:80"
+    networks:
+      - webnet
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID, NET_BIND_SERVICE]
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+
+networks:
+  dbnet:
+    # internal: no route to the internet, and no host exposure.
+    internal: true
+  webnet: {}
+
+volumes:
+  pgdata: {}

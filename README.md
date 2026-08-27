@@ -62,67 +62,90 @@ This repository is designed to be portable and runnable using environment variab
 ```
 nimbus-core/
 ├── Backend/
+│   ├── Dockerfile              # multi-stage: Temurin JDK 21 build -> JRE runtime
+│   ├── .dockerignore
+│   ├── pom.xml
 │   └── src/main/java/com/nimbus/api/
 ├── Frontend/
-│   ├── public/            # static site (document root)
-│   │   ├── index.html
-│   │   ├── login.html
-│   │   ├── register.html
-│   │   ├── dashboard.html
-│   │   └── assets/        # styles.css, config.js, app.js
-│   └── nginx/
-│       └── nimbus-gui.conf
+│   ├── Dockerfile              # nginx, static site baked in
+│   ├── .dockerignore
+│   ├── nginx/
+│   │   ├── 00-ratelimit.conf   # limit_req zone for auth endpoints
+│   │   └── 10-nimbus-gui.conf  # site + /api proxy + security headers
+│   └── public/                 # document root
+│       ├── index.html  login.html  register.html  dashboard.html
+│       └── assets/             # styles.css, config.js, app.js, <page>.js
+├── docker-compose.yml          # db (isolated) + backend + web
+├── run.sh                      # build / start / stop / logs
 ├── .env.example
-├── README.md
+└── README.md
 ```
 
 ---
 
 ## Environment Variables
 
-### Backend (`.env`)
-Create a `.env` file in the repo root (see `.env.example`):
+`run.sh` generates a `.env` with strong random secrets on first run, so there is
+usually nothing to do by hand. See `.env.example` for the full list.
 
-```env
-SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:5432/<database>
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRATION_MS=600000
-```
+| Variable | Purpose |
+|---|---|
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Database credentials. The backend builds its JDBC URL from these; Postgres is never reachable outside the container network. |
+| `JWT_SECRET` | HS256 signing key. **Must be ≥ 32 bytes** — the app refuses to start otherwise. Rotating it invalidates every issued token. |
+| `JWT_EXPIRATION_MS` | Token lifetime (default 600000 = 10 min). |
+| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | Leave **empty** for same-origin (correct behind the bundled nginx). Set only if a browser on another origin must call the API. |
 
-### Frontend (`Frontend/public/assets/config.js`)
-```js
-const API_BASE = "/api";   // same-origin, proxied to the backend by nginx
-```
+`.env` is gitignored and written mode `600`. Never commit it.
 
 ---
 
-## Running Locally
+## Running
 
-### Backend
-```bash
-cd Backend
-./mvnw spring-boot:run
-```
-
-Backend runs on: `http://localhost:8080`
-
-### Frontend
-No build step. Serve `Frontend/public/` as a static site:
+Everything runs in containers. From a fresh clone:
 
 ```bash
-cd Frontend/public
-python3 -m http.server 5173
+git clone https://github.com/kizzycpt/nimbus-core.git
+cd nimbus-core
+./run.sh
 ```
 
-Frontend runs on: `http://localhost:5173`
+That builds the images, starts the stack, waits for every container to report
+healthy, and smoke-tests the API through nginx.
 
-Note: with a plain static server there is no `/api/` proxy, so API calls
-will 404. For the full flow, deploy behind nginx using
-`Frontend/nginx/nimbus-gui.conf` (copy `Frontend/public/` to
-`/var/www/nimbus-gui`), or temporarily point `API_BASE` at
-`http://localhost:8080` in `config.js`.
+| Command | Effect |
+|---|---|
+| `./run.sh` | Build if needed and start |
+| `./run.sh rebuild` | Clean rebuild (`--no-cache --pull`) and restart |
+| `./run.sh logs` | Follow logs |
+| `./run.sh status` | Container and health state |
+| `./run.sh down` | Stop; **keeps** the database volume |
+| `./run.sh destroy` | Stop and **delete** the database volume (prompts for confirmation) |
+
+Once up:
+
+- GUI — `http://127.0.0.1:8080/`
+- API — `http://127.0.0.1:8080/api/health`
+
+### Container layout
+
+| Service | Image | Host port | Notes |
+|---|---|---|---|
+| `db` | `postgres:16` | **none** | On an `internal: true` network — no host port, no LAN exposure, no outbound internet. SCRAM-SHA-256 auth. |
+| `backend` | built from `Backend/` | **none** | Reachable only through nginx. Runs as UID 10001, read-only rootfs, all capabilities dropped. |
+| `web` | built from `Frontend/` | `127.0.0.1:8080` | The only published port, bound to loopback. Read-only rootfs. |
+
+To reach the database:
+
+```bash
+docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+```
+
+### Exposing it publicly
+
+The nginx port is bound to `127.0.0.1` on purpose. Put a TLS terminator in
+front of it — `cloudflared`, Caddy, or a host nginx — rather than changing the
+bind address to `0.0.0.0`. If you do publish it directly, set
+`APP_CORS_ALLOWED_ORIGIN_PATTERNS` to the exact origin, never `*`.
 
 ---
 

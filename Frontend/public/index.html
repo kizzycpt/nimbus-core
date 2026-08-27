@@ -37,7 +37,7 @@
           <a class="btn" href="/login.html">Login</a>
           <a class="btn" href="/register.html">Create Account</a>
         </div>
-        <div class="toast" style="margin-top:14px;">
+        <div class="toast mt-14">
           Auth status: <span id="authState" class="mono">...</span>
         </div>
       </div>
@@ -50,7 +50,7 @@
           <div class="toast"><span class="mono">POST /api/login</span></div>
           <div class="toast"><span class="mono">POST /api/register</span></div>
         </div>
-        <p class="small" style="margin-top:10px;">
+        <p class="small mt-10">
           If your endpoints differ, update the paths in <span class="mono">login.html</span> / <span class="mono">register.html</span>.
         </p>
       </div>
@@ -59,12 +59,6 @@
 
   <script src="/assets/config.js"></script>
   <script src="/assets/app.js"></script>
-  <script>
-    document.querySelector("#logoutBtn").addEventListener("click", () => {
-      clearToken();
-      updateAuthUI();
-      alert("Logged out.");
-    });
-  </script>
+  <script src="/assets/index.js"></script>
 </body>
 </html>

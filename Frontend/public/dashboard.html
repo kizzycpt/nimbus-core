@@ -24,7 +24,7 @@
       <div class="card">
         <h2>API Status</h2>
         <p>Checks the backend health endpoint.</p>
-        <div class="row" style="margin-top:10px;">
+        <div class="row mt-10">
           <button id="checkBtn" class="btn btn-primary">Check /health</button>
         </div>
         <div id="toast" class="toast mono" hidden></div>
@@ -34,7 +34,7 @@
         <h2>Session</h2>
         <p class="small">JWT is stored in localStorage for this template.</p>
         <div class="toast">Auth status: <span id="authState" class="mono">...</span></div>
-        <div class="row" style="margin-top:10px;">
+        <div class="row mt-10">
           <button id="clearBtn" class="btn btn-danger">Clear Token</button>
         </div>
       </div>
@@ -43,28 +43,6 @@
 
   <script src="/assets/config.js"></script>
   <script src="/assets/app.js"></script>
-  <script>
-    document.querySelector("#logoutBtn").addEventListener("click", () => {
-      clearToken();
-      updateAuthUI();
-      alert("Logged out.");
-    });
-
-    document.querySelector("#clearBtn").addEventListener("click", () => {
-      clearToken();
-      updateAuthUI();
-      alert("Token cleared.");
-    });
-
-    document.querySelector("#checkBtn").addEventListener("click", async () => {
-      const toast = document.querySelector("#toast");
-      try {
-        const res = await apiFetch("/health", { method: "GET" });
-        setToast(toast, JSON.stringify(res, null, 2), true);
-      } catch (err) {
-        setToast(toast, `Health check failed: ${err.message}`, false);
-      }
-    });
-  </script>
+  <script src="/assets/dashboard.js"></script>
 </body>
 </html>

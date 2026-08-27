@@ -12,6 +12,7 @@ import com.nimbus.api.jwt.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.util.StringUtils;
+import java.util.Optional;
 
 @RestController
 public class UserController {
@@ -65,17 +66,22 @@ public class UserController {
         if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return userRepository.findByUsername(request.getUsername())
-            .filter(user ->
-                passwordEncoder.matches(
-                    request.getPassword(),
-                    user.getPassword()
-                )
-            )
-            .map(user -> {
-                String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-                return ResponseEntity.ok(Map.of("token", token));
-            })
-            .orElse(ResponseEntity.status(401).build());
+        Optional<User> found = userRepository.findByUsername(request.getUsername());
+
+        if (found.isEmpty()) {
+            // Burn an equivalent BCrypt round anyway. Returning early here would
+            // make "no such user" measurably faster than "wrong password" and
+            // leak which usernames exist.
+            passwordEncoder.encode(request.getPassword());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = found.get();
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }

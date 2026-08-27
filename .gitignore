@@ -49,9 +49,12 @@ src/main/resources/application.properties
 .DS_Store
 Thumbs.db
 
-# Frontend build
-Frontend/dist
-Frontend/node_modules
+# Build artifacts — never commit compiled jars
+*.jar
+!Backend/.mvn/wrapper/maven-wrapper.jar
 
 .env
 .env.local
+
+# Local container overrides
+docker-compose.override.yml

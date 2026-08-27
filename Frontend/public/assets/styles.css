@@ -151,3 +151,10 @@ p{ margin: 0 0 10px; color: var(--muted); line-height: 1.55; }
 .toast.err{ border-color: rgba(229,72,77,.45); background: rgba(229,72,77,.08); color:#ffb4b6; }
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
 hr{ border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* --- utility classes (extracted from inline style attributes so the
+       Content-Security-Policy can stay strict: no 'unsafe-inline') --- */
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.mt-14 { margin-top: 14px; }
+.card-form { max-width: 560px; margin: 0 auto; }
