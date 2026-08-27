@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nimbus Core</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Core GUI</span>
+      </div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/dashboard.html">Dashboard</a>
+        <a class="btn" href="/login.html">Login</a>
+        <a class="btn" href="/register.html">Register</a>
+        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h1>Nimbus Core</h1>
+        <p>
+          Template web GUI for your Raspberry Pi web server. This frontend talks to your Spring Boot API
+          through <span class="mono">/api</span> (configure in <span class="mono">assets/config.js</span>).
+        </p>
+        <hr />
+        <div class="row">
+          <a class="btn btn-primary" href="/dashboard.html">Open Dashboard</a>
+          <a class="btn" href="/login.html">Login</a>
+          <a class="btn" href="/register.html">Create Account</a>
+        </div>
+        <div class="toast" style="margin-top:14px;">
+          Auth status: <span id="authState" class="mono">...</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Quick Links</h2>
+        <p class="small">Common endpoints (behind Nginx proxy):</p>
+        <div class="form">
+          <div class="toast"><span class="mono">GET /api/health</span></div>
+          <div class="toast"><span class="mono">POST /api/login</span></div>
+          <div class="toast"><span class="mono">POST /api/register</span></div>
+        </div>
+        <p class="small" style="margin-top:10px;">
+          If your endpoints differ, update the paths in <span class="mono">login.html</span> / <span class="mono">register.html</span>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script>
+    document.querySelector("#logoutBtn").addEventListener("click", () => {
+      clearToken();
+      updateAuthUI();
+      alert("Logged out.");
+    });
+  </script>
+</body>
+</html>

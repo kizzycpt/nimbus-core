@@ -38,9 +38,10 @@ This repository is designed to be portable and runnable using environment variab
 - Environment-based configuration  
 
 ### Frontend
-- React-based GUI for auth flow validation  
-- Secure JWT handling  
+- Static multi-page GUI for auth flow validation  
+- Secure JWT handling via `localStorage`  
 - Protected UI states and auto-logout  
+- Served by nginx, which reverse-proxies `/api/` to the backend  
 
 ---
 
@@ -52,7 +53,8 @@ This repository is designed to be portable and runnable using environment variab
 - JPA / Hibernate, Maven
 
 **Frontend**
-- React
+- Static HTML / CSS / vanilla JS
+- nginx (static hosting + `/api/` reverse proxy)
 ---
 
 ## Project Structure
@@ -60,9 +62,16 @@ This repository is designed to be portable and runnable using environment variab
 ```
 nimbus-core/
 ├── Backend/
+│   └── src/main/java/com/nimbus/api/
 ├── Frontend/
-│   ├── src/
-│   ├── .env.example
+│   ├── public/            # static site (document root)
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── dashboard.html
+│   │   └── assets/        # styles.css, config.js, app.js
+│   └── nginx/
+│       └── nimbus-gui.conf
 ├── .env.example
 ├── README.md
 ```
@@ -82,9 +91,9 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRATION_MS=600000
 ```
 
-### Frontend (`Frontend/.env.local`)
-```env
-VITE_API_BASE_URL=http://localhost:8080
+### Frontend (`Frontend/public/assets/config.js`)
+```js
+const API_BASE = "/api";   // same-origin, proxied to the backend by nginx
 ```
 
 ---
@@ -100,13 +109,20 @@ cd Backend
 Backend runs on: `http://localhost:8080`
 
 ### Frontend
+No build step. Serve `Frontend/public/` as a static site:
+
 ```bash
-cd Frontend
-npm install
-npm run dev
+cd Frontend/public
+python3 -m http.server 5173
 ```
 
 Frontend runs on: `http://localhost:5173`
+
+Note: with a plain static server there is no `/api/` proxy, so API calls
+will 404. For the full flow, deploy behind nginx using
+`Frontend/nginx/nimbus-gui.conf` (copy `Frontend/public/` to
+`/var/www/nimbus-gui`), or temporarily point `API_BASE` at
+`http://localhost:8080` in `config.js`.
 
 ---
 

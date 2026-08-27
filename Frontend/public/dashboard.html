@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard - Nimbus</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand"><span class="mono">Nimbus</span><span class="badge">Dashboard</span></div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/login.html">Login</a>
+        <a class="btn" href="/register.html">Register</a>
+        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>API Status</h2>
+        <p>Checks the backend health endpoint.</p>
+        <div class="row" style="margin-top:10px;">
+          <button id="checkBtn" class="btn btn-primary">Check /health</button>
+        </div>
+        <div id="toast" class="toast mono" hidden></div>
+      </div>
+
+      <div class="card">
+        <h2>Session</h2>
+        <p class="small">JWT is stored in localStorage for this template.</p>
+        <div class="toast">Auth status: <span id="authState" class="mono">...</span></div>
+        <div class="row" style="margin-top:10px;">
+          <button id="clearBtn" class="btn btn-danger">Clear Token</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script>
+    document.querySelector("#logoutBtn").addEventListener("click", () => {
+      clearToken();
+      updateAuthUI();
+      alert("Logged out.");
+    });
+
+    document.querySelector("#clearBtn").addEventListener("click", () => {
+      clearToken();
+      updateAuthUI();
+      alert("Token cleared.");
+    });
+
+    document.querySelector("#checkBtn").addEventListener("click", async () => {
+      const toast = document.querySelector("#toast");
+      try {
+        const res = await apiFetch("/health", { method: "GET" });
+        setToast(toast, JSON.stringify(res, null, 2), true);
+      } catch (err) {
+        setToast(toast, `Health check failed: ${err.message}`, false);
+      }
+    });
+  </script>
+</body>
+</html>
