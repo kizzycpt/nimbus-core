@@ -15,10 +15,14 @@
       </div>
       <div class="links">
         <a class="btn" href="/">Home</a>
-        <a class="btn" href="/dashboard.html">Dashboard</a>
-        <a class="btn" href="/login.html">Login</a>
-        <a class="btn" href="/register.html">Register</a>
-        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
       </div>
     </div>
   </div>
@@ -28,30 +32,36 @@
       <div class="card">
         <h1>Nimbus Core</h1>
         <p>
-          Template web GUI for your Raspberry Pi web server. This frontend talks to your Spring Boot API
-          through <span class="mono">/api</span> (configure in <span class="mono">assets/config.js</span>).
+          A self-hosted account service: registration, sign-in backed by
+          revocable server-side sessions, account settings, and a help/change
+          ticket queue. The GUI talks to the Spring Boot API through
+          <span class="mono">/api</span> on the same origin.
         </p>
         <hr />
         <div class="row">
-          <a class="btn btn-primary" href="/dashboard.html">Open Dashboard</a>
-          <a class="btn" href="/login.html">Login</a>
-          <a class="btn" href="/register.html">Create Account</a>
+          <a class="btn btn-primary" href="/dashboard.html" data-auth="in" hidden>Open Dashboard</a>
+          <a class="btn btn-primary" href="/register.html" data-auth="out" hidden>Create Account</a>
+          <a class="btn" href="/login.html" data-auth="out" hidden>Sign In</a>
+          <a class="btn" href="/status.html">Service Status</a>
         </div>
         <div class="toast mt-14">
-          Auth status: <span id="authState" class="mono">...</span>
+          Signed in as <span id="authState" class="mono">...</span>
         </div>
       </div>
 
       <div class="card">
-        <h2>Quick Links</h2>
-        <p class="small">Common endpoints (behind Nginx proxy):</p>
-        <div class="form">
-          <div class="toast"><span class="mono">GET /api/health</span></div>
-          <div class="toast"><span class="mono">POST /api/login</span></div>
-          <div class="toast"><span class="mono">POST /api/register</span></div>
-        </div>
-        <p class="small mt-10">
-          If your endpoints differ, update the paths in <span class="mono">login.html</span> / <span class="mono">register.html</span>.
+        <h2>How sign-in works</h2>
+        <p class="small">
+          Your session is an opaque token in an <span class="mono">HttpOnly</span>,
+          <span class="mono">SameSite=Strict</span> cookie. Page scripts cannot read
+          it, so a cross-site script injection has no token to steal, and the
+          browser will not attach it to requests started by another site.
+        </p>
+        <p class="small">
+          Every state-changing call additionally carries a CSRF token that only
+          our own pages can read. Sessions are rows in the database, so you can
+          revoke any of them instantly from
+          <span class="mono">Account</span>.
         </p>
       </div>
     </div>

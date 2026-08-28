@@ -1,27 +1,26 @@
-document.querySelector("#logoutBtn").addEventListener("click", () => {
-  clearToken();
-  updateAuthUI();
-  alert("Logged out.");
-});
-
-document.querySelector("#registerForm").addEventListener("submit", async (e) => {
+$("#registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const toast = document.querySelector("#toast");
+  const toast = $("#toast");
+  const submit = $("#submitBtn");
 
-  const payload = {
-    username: document.querySelector("#username").value.trim(),
-    password: document.querySelector("#password").value
-  };
+  const password = $("#password").value;
+  if (password !== $("#confirm").value) {
+    setToast(toast, "Passwords do not match", false);
+    return;
+  }
 
+  submit.disabled = true;
   try {
-    await apiFetch("/register", {
+    // Registering signs you in, so there is no second trip through /login.
+    const user = await apiFetch("/register", {
       method: "POST",
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ username: $("#username").value.trim(), password })
     });
 
-    setToast(toast, "Registered! Now login.", true);
-    setTimeout(() => location.href = "/login.html", 900);
+    setToast(toast, `Welcome, ${user.username}`, true);
+    setTimeout(() => location.href = "/dashboard.html", 600);
   } catch (err) {
-    setToast(toast, `Register failed: ${err.message}`, false);
+    setToast(toast, `Registration failed: ${err.message}`, false);
+    submit.disabled = false;
   }
 });

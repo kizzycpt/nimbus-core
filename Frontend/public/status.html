@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Status - Nimbus</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Status</span>
+      </div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h1>Service Status</h1>
+      <div id="banner" class="toast" hidden></div>
+      <div id="detail" class="mt-12"></div>
+      <div class="row mt-14">
+        <button id="refreshBtn" class="btn">Refresh now</button>
+      </div>
+      <p class="small mt-10">
+        Last checked <span id="checkedAt" class="mono">...</span> · refreshes every 15s
+      </p>
+    </div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script src="/assets/status.js"></script>
+</body>
+</html>

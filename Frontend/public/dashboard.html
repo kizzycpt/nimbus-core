@@ -6,15 +6,23 @@
   <title>Dashboard - Nimbus</title>
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
-<body>
+<body data-requires-auth="1">
   <div class="nav">
     <div class="nav-inner">
-      <div class="brand"><span class="mono">Nimbus</span><span class="badge">Dashboard</span></div>
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Dashboard</span>
+      </div>
       <div class="links">
         <a class="btn" href="/">Home</a>
-        <a class="btn" href="/login.html">Login</a>
-        <a class="btn" href="/register.html">Register</a>
-        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
       </div>
     </div>
   </div>
@@ -22,21 +30,31 @@
   <div class="container">
     <div class="grid">
       <div class="card">
-        <h2>API Status</h2>
-        <p>Checks the backend health endpoint.</p>
-        <div class="row mt-10">
-          <button id="checkBtn" class="btn btn-primary">Check /health</button>
+        <h2>Welcome, <span id="who" class="mono">...</span></h2>
+        <div class="toast">Member since <span id="memberSince" class="mono">...</span></div>
+        <div class="toast">Active sessions <span id="sessionCount" class="mono">...</span></div>
+        <div class="toast">Open tickets <span id="openTickets" class="mono">...</span></div>
+        <div class="toast">Websites <span id="siteCount" class="mono">...</span></div>
+        <div class="toast">Storage <span id="storage" class="mono">...</span></div>
+        <div class="row mt-12">
+          <a class="btn" href="/sites.html">Websites</a>
+          <a class="btn" href="/account.html">Account settings</a>
+          <a class="btn" href="/tickets.html">Tickets</a>
         </div>
-        <div id="toast" class="toast mono" hidden></div>
       </div>
 
       <div class="card">
-        <h2>Session</h2>
-        <p class="small">JWT is stored in localStorage for this template.</p>
-        <div class="toast">Auth status: <span id="authState" class="mono">...</span></div>
+        <h2>API checks</h2>
+        <p class="small">
+          <span class="mono">/health</span> is public.
+          <span class="mono">/protected</span> only answers when your session cookie
+          is valid — a good end-to-end proof that auth works.
+        </p>
         <div class="row mt-10">
-          <button id="clearBtn" class="btn btn-danger">Clear Token</button>
+          <button id="checkBtn" class="btn btn-primary">GET /health</button>
+          <button id="protectedBtn" class="btn">GET /protected</button>
         </div>
+        <div id="toast" class="toast mono" hidden></div>
       </div>
     </div>
   </div>

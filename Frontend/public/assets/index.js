@@ -1,5 +1,1 @@
-document.querySelector("#logoutBtn").addEventListener("click", () => {
-  clearToken();
-  updateAuthUI();
-  alert("Logged out.");
-});
+/* Home page: nothing to do beyond the shared nav/auth wiring in app.js. */

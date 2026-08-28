@@ -1,0 +1,46 @@
+# Bring the Nimbus stack up at boot, after the network and the database are
+# actually reachable.
+#
+# Why this is needed: the containers carry restart: unless-stopped, so Docker
+# does try. But on a cold boot the backend races the network — it reaches for
+# 10.10.10.20 before enp2s4 is configured, fails its healthcheck, and `web`
+# never starts because it waits for backend to be healthy. The stack then sits
+# down until someone runs run.sh by hand.
+#
+# Install:
+#   qm guest exec 201 -- /bin/sh -c "cp /home/power/nimbus-core/nimbus-core.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable nimbus-core.service"
+#
+# Test it properly — reboot and confirm it comes back with no intervention:
+#   qm reboot 201
+#   sleep 90
+#   qm guest exec 201 -- /bin/sh -c "curl -s http://127.0.0.1:8080/api/status"
+
+[Unit]
+Description=Nimbus Core application stack
+Documentation=file:/home/power/nimbus-core/README.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=power
+Group=power
+WorkingDirectory=/home/power/nimbus-core
+Environment=NIMBUS_NO_BUILD=1
+
+# Wait for Postgres to answer before starting anything. Up to two minutes,
+# which covers the container booting alongside this VM. Without this the
+# backend starts first, fails, and takes the whole stack down with it.
+ExecStartPre=/bin/bash -c 'for i in $(seq 1 60); do (echo > /dev/tcp/10.10.10.20/5432) >/dev/null 2>&1 && exit 0; sleep 2; done; echo "postgres 10.10.10.20:5432 never answered"; exit 1'
+
+ExecStart=/home/power/nimbus-core/run.sh up
+ExecStop=/home/power/nimbus-core/run.sh down
+
+TimeoutStartSec=420
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -9,30 +9,40 @@
 <body>
   <div class="nav">
     <div class="nav-inner">
-      <div class="brand"><span class="mono">Nimbus</span><span class="badge">Register</span></div>
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Register</span>
+      </div>
       <div class="links">
         <a class="btn" href="/">Home</a>
-        <a class="btn" href="/dashboard.html">Dashboard</a>
-        <a class="btn" href="/login.html">Login</a>
-        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
       </div>
     </div>
   </div>
 
   <div class="container">
     <div class="card card-form">
-      <h2>Create account</h2>
-      <p>Registers a new user via the Nimbus Core API.</p>
-
+      <h2>Create Account</h2>
       <form id="registerForm" class="form">
-        <input class="input" id="username" type="text" placeholder="Username" autocomplete="username" required />
-        <input class="input" id="password" type="password" placeholder="Password" autocomplete="new-password" required />
-        <button class="btn btn-primary" type="submit">Register</button>
+        <input class="input" id="username" type="text" placeholder="Username"
+               autocomplete="username" required />
+        <input class="input" id="password" type="password" placeholder="Password"
+               autocomplete="new-password" required />
+        <input class="input" id="confirm" type="password" placeholder="Confirm password"
+               autocomplete="new-password" required />
+        <button class="btn btn-primary" id="submitBtn" type="submit">Register</button>
       </form>
-
       <div id="toast" class="toast" hidden></div>
       <p class="small mt-12">
-        Already have an account? <a class="mono" href="/login.html">Login</a>
+        3-32 characters for the username (letters, digits, dot, underscore, hyphen).
+        Passwords must be at least 10 characters.
       </p>
     </div>
   </div>

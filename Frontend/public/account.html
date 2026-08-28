@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Account - Nimbus</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body data-requires-auth="1">
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Account</span>
+      </div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>Profile</h2>
+        <div class="toast">Username <span id="profileUser" class="mono">...</span></div>
+        <div class="toast">User ID <span id="profileId" class="mono">...</span></div>
+        <div class="toast">Created <span id="profileCreated" class="mono">...</span></div>
+        <div class="toast">Password changed <span id="profilePwChanged" class="mono">...</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Change Password</h2>
+        <form id="passwordForm" class="form">
+          <input class="input" id="currentPassword" type="password"
+                 placeholder="Current password" autocomplete="current-password" required />
+          <input class="input" id="newPassword" type="password"
+                 placeholder="New password" autocomplete="new-password" required />
+          <input class="input" id="newPasswordConfirm" type="password"
+                 placeholder="Confirm new password" autocomplete="new-password" required />
+          <button class="btn btn-primary" type="submit">Update password</button>
+        </form>
+        <p class="small mt-10">
+          Changing your password signs out every other device.
+        </p>
+        <div id="passwordToast" class="toast" hidden></div>
+      </div>
+    </div>
+
+    <div class="grid mt-14">
+      <div class="card">
+        <h2>Active Sessions</h2>
+        <p class="small">Every device currently signed in as you.</p>
+        <div id="sessionList"></div>
+        <div class="row mt-12">
+          <button id="revokeAllBtn" class="btn btn-danger">Sign out all other devices</button>
+        </div>
+        <div id="sessionToast" class="toast" hidden></div>
+      </div>
+
+      <div class="card">
+        <h2>API Token</h2>
+        <p class="small">
+          Cookies are for browsers. For scripts and CI, mint a short-lived bearer
+          token and send it as <span class="mono">Authorization: Bearer &lt;token&gt;</span>.
+        </p>
+        <div class="row mt-10">
+          <button id="tokenBtn" class="btn btn-primary">Generate token</button>
+        </div>
+        <div id="tokenToast" class="toast mono" hidden></div>
+        <p id="tokenHint" class="small mt-10" hidden>
+          Copy it now — it is not stored anywhere you can read it back.
+        </p>
+      </div>
+    </div>
+
+    <div class="card mt-14">
+      <h2>Delete Account</h2>
+      <p class="small">
+        Permanently removes your account, every session, and all of your tickets.
+        This cannot be undone.
+      </p>
+      <form id="deleteForm" class="form">
+        <input class="input" id="deletePassword" type="password"
+               placeholder="Your password" autocomplete="current-password" required />
+        <input class="input" id="deleteConfirm" type="text"
+               placeholder="Type DELETE to confirm" required />
+        <button class="btn btn-danger" type="submit">Delete my account</button>
+      </form>
+      <div id="deleteToast" class="toast" hidden></div>
+    </div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script src="/assets/account.js"></script>
+</body>
+</html>

@@ -1,10 +1,124 @@
-HELP.md
+#===========================================================================
+# Nimbus Core — .gitignore
+#
+# Rule of thumb: this repository is public-facing. Anything describing a
+# specific machine, anything proving identity, and anything containing another
+# person's data stays out of it.
+#
+# Many entries below are preemptive — the file does not exist yet. That is the
+# point: a .gitignore line is cheap, and a rotated credential plus a rewritten
+# history is not.
+#===========================================================================
+
+#---------------------------------------------------------------------------
+# Secrets and identity
+#---------------------------------------------------------------------------
+# Real environment files. Only .env.example is ever committed.
+.env
+.env.*
+!.env.example
+
+# Keys and certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+id_rsa*
+id_ecdsa*
+id_ed25519*
+authorized_keys
+known_hosts
+certs/
+tls/
+secrets/
+
+#---------------------------------------------------------------------------
+# Other people's data
+#---------------------------------------------------------------------------
+# Customer site content. The default NIMBUS_SITES_DIR; in production this is
+# the data-disk mount point. Never ours to publish.
+data/
+
+# Backups and dumps contain every user row.
+*.sql
+*.dump
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+pgdata.tar.gz
+nimbus-backup-*
+
+#---------------------------------------------------------------------------
+# Site-specific migration helpers. finalize-isolated.sh carries this
+# deployment's addresses; the generic instructions live in the runbooks.
+finalize-isolated.sh
+
+#---------------------------------------------------------------------------
+# Machine-specific operator notes
+#---------------------------------------------------------------------------
+# Hostnames, drive UUIDs, network layout. These describe YOUR box.
+local-notes/
+nimbus-runbooks.tar.gz
+
+# Local overrides for this host only.
+docker-compose.override.yml
+
+#---------------------------------------------------------------------------
+# Build output
+#---------------------------------------------------------------------------
 target/
-.mvn/wrapper/maven-wrapper.jar
+build/
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### STS ###
+# Never commit compiled jars — one used to live here and it cost 61MB.
+*.jar
+!Backend/.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.jar
+
+#---------------------------------------------------------------------------
+# Runtime state
+#---------------------------------------------------------------------------
+*.log
+logs/
+*.pid
+*.sock
+core
+core.*
+
+#---------------------------------------------------------------------------
+# Infrastructure state, if any is ever added here
+#---------------------------------------------------------------------------
+*.tfstate
+*.tfstate.*
+.terraform/
+*.retry
+inventory.ini
+
+#---------------------------------------------------------------------------
+# Editor and tooling
+#
+# Listed here rather than only in a personal global gitignore, so the rule
+# travels to other machines and to anyone who clones this.
+#---------------------------------------------------------------------------
+.claude/settings.local.json
+.claude/settings.local.json.*
+.vscode/
+*.code-workspace
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Eclipse / STS
 .apt_generated
 .classpath
 .factorypath
@@ -13,48 +127,22 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# Spring scaffolding we do not use
+HELP.md
 
-src/main/resources/application-prod.yml
-src/main/resources/application.properties
-.DS_Store
-
-# Environment variables
-.env
-.env.local
-.env.development
-.env.production
-
-# Logs
-*.log
-
-# OS / tooling noise
+#---------------------------------------------------------------------------
+# OS noise
+#---------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
-
-# Build artifacts — never commit compiled jars
-*.jar
-!Backend/.mvn/wrapper/maven-wrapper.jar
-
-.env
-.env.local
-
-# Local container overrides
-docker-compose.override.yml
+*.bak
+*.orig
+*.rej
+*~

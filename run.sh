@@ -17,6 +17,7 @@ cd "$(dirname "$0")"
 ENV_FILE=".env"
 BIND_ADDR="127.0.0.1"
 BIND_PORT="8080"
+SITES_DIR_DEFAULT="./data/sites"
 
 c_red()  { printf '\033[31m%s\033[0m\n' "$*"; }
 c_grn()  { printf '\033[32m%s\033[0m\n' "$*"; }
@@ -78,6 +79,52 @@ set -a; source "$ENV_FILE"; set +a
 (( ${#POSTGRES_PASSWORD} >= 16 )) || die "POSTGRES_PASSWORD must be at least 16 characters; it is ${#POSTGRES_PASSWORD}"
 
 #------------------------------------------------------------------
+# Storage ownership
+#
+# Customer site files live on a bind mount (a flash drive, usually). Unlike a
+# named volume, a bind mount keeps the host's ownership, so the container has
+# to run as a UID that can actually write there. Resolve it from the directory
+# itself rather than making the operator chown things by hand.
+#------------------------------------------------------------------
+SITES_DIR="${NIMBUS_SITES_DIR:-$SITES_DIR_DEFAULT}"
+mkdir -p "$SITES_DIR"
+
+OWNER_UID="$(stat -c %u "$SITES_DIR")"
+OWNER_GID="$(stat -c %g "$SITES_DIR")"
+
+if [[ "$OWNER_UID" == "0" ]]; then
+  # Root owns it — normal for a freshly mounted disk. Hand it to the dedicated
+  # service account rather than running a network-facing app as root.
+  if chown -R 10001:10001 "$SITES_DIR" 2>/dev/null; then
+    OWNER_UID=10001
+    OWNER_GID=10001
+  else
+    c_ylw "warning: $SITES_DIR is owned by root and could not be chowned."
+    c_ylw "         Run: sudo chown -R 10001:10001 $SITES_DIR"
+  fi
+fi
+
+export NIMBUS_UID="$OWNER_UID"
+export NIMBUS_GID="$OWNER_GID"
+export NIMBUS_SITES_DIR="$SITES_DIR"
+
+# Persist them into .env as well. docker compose reads .env on its own, so a
+# plain `docker compose up` gets the same UID this script resolved — otherwise
+# it would silently fall back to 10001 and the backend could not write to the
+# storage directory.
+upsert_env() {
+  local key="$1" value="$2"
+  if grep -q "^${key}=" "$ENV_FILE" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+  fi
+}
+upsert_env NIMBUS_UID "$OWNER_UID"
+upsert_env NIMBUS_GID "$OWNER_GID"
+upsert_env NIMBUS_SITES_DIR "$SITES_DIR"
+
+#------------------------------------------------------------------
 # Wait for the stack to report healthy
 #------------------------------------------------------------------
 wait_healthy() {
@@ -104,9 +151,22 @@ wait_healthy() {
 #------------------------------------------------------------------
 cmd="${1:-up}"
 
+if [[ "$cmd" == "-h" || "$cmd" == "--help" ]]; then
+  sed -n '2,12p' "$0" | sed 's/^#//'
+  exit 0
+fi
+
 case "$cmd" in
   up)
-    "${DC[@]}" up -d --build
+    # NIMBUS_NO_BUILD=1 is for hosts that run prebuilt images: a small box, or
+    # one with no route to a registry or to Maven Central. Building needs
+    # several GB of RAM and disk that such a host does not have.
+    if [[ "${NIMBUS_NO_BUILD:-0}" == "1" ]]; then
+      c_ylw "NIMBUS_NO_BUILD=1 — starting from existing images, not building."
+      "${DC[@]}" up -d --no-build
+    else
+      "${DC[@]}" up -d --build
+    fi
     ;;
   rebuild)
     "${DC[@]}" build --no-cache --pull
@@ -138,7 +198,13 @@ case "$cmd" in
 esac
 
 echo
-wait_healthy db      || { "${DC[@]}" logs --tail=40 db;      die "database did not come up"; }
+# Postgres may be external (its own container or host), in which case there is
+# no db service to wait on. Only wait for what compose actually defines.
+if "${DC[@]}" config --services 2>/dev/null | grep -qx db; then
+  wait_healthy db  || { "${DC[@]}" logs --tail=40 db; die "database did not come up"; }
+else
+  c_grn "database: external — skipping local health wait"
+fi
 wait_healthy backend || { "${DC[@]}" logs --tail=60 backend; die "backend did not come up"; }
 wait_healthy web     || { "${DC[@]}" logs --tail=40 web;     die "nginx did not come up"; }
 
@@ -148,8 +214,13 @@ echo
 echo "  GUI       http://${BIND_ADDR}:${BIND_PORT}/"
 echo "  API       http://${BIND_ADDR}:${BIND_PORT}/api/health"
 echo
-echo "  Postgres  not published — reachable only from the backend container."
-echo "            shell:  ${DC[*]} exec db psql -U \$POSTGRES_USER -d \$POSTGRES_DB"
+if "${DC[@]}" config --services 2>/dev/null | grep -qx db; then
+  echo "  Postgres  not published — reachable only from the backend container."
+  echo "            shell:  ${DC[*]} exec db psql -U \$POSTGRES_USER -d \$POSTGRES_DB"
+else
+  echo "  Postgres  external, at ${POSTGRES_HOST:-unset}"
+  echo "            shell:  psql -h ${POSTGRES_HOST:-HOST} -U \$POSTGRES_USER -d \$POSTGRES_DB"
+fi
 echo
 echo "  logs      ./run.sh logs"
 echo "  stop      ./run.sh down"

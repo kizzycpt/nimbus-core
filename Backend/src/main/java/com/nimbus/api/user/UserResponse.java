@@ -1,20 +1,10 @@
 package com.nimbus.api.user;
 
-public class UserResponse {
+import java.time.Instant;
 
-    private Long id;
-    private String username;
+public record UserResponse(Long id, String username, Instant createdAt) {
 
-    public UserResponse(Long id, String username) {
-        this.id = id;
-        this.username = username;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
+    public static UserResponse of(User user) {
+        return new UserResponse(user.getId(), user.getUsername(), user.getCreatedAt());
     }
 }

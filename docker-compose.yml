@@ -4,6 +4,17 @@
 #            over an internal (no-egress) network.
 #   backend  Spring Boot API. NO published port. Reachable only via nginx.
 #   web      nginx. The ONLY container with a host port, bound to loopback.
+#
+# Customer websites run as SEPARATE containers, one per site, created by
+# site-reconciler.sh on the host rather than by this file — their number is not
+# known ahead of time. They join `sitenet` and are proxied by `web`.
+#
+# Site files live on NIMBUS_SITES_DIR (default ./data/sites), which is where a
+# flash drive or data disk gets mounted.
+#
+# Every service caps its logs at 10MB x 3 files. Docker's json-file driver does
+# not rotate by default, so on a box that runs for months the logs are what
+# fills the disk — which matters most in a small LXC.
 
 name: nimbus-core
 
@@ -29,8 +40,19 @@ services:
       - log_connections=on
       - -c
       - log_disconnections=on
+      # The backend's Hikari pool tops out at 10. 100 connections is headroom
+      # nobody uses, and each one reserves memory — expensive in a small LXC.
+      - -c
+      - max_connections=50
+      - -c
+      - shared_buffers=128MB
     volumes:
       - pgdata:/var/lib/postgresql/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - dbnet
     healthcheck:
@@ -46,22 +68,48 @@ services:
     tmpfs:
       - /tmp
       - /run
+    deploy:
+      resources:
+        limits:
+          # shared_buffers 128MB + maintenance_work_mem + per-connection
+          # overhead, with room to spare. Measured idle usage is ~51MB.
+          memory: 512m
 
   backend:
     build:
       context: ./Backend
     restart: unless-stopped
+    # Runs as whoever owns NIMBUS_SITES_DIR on the host. Bind mounts do not
+    # inherit ownership from the image the way named volumes do, so a fixed UID
+    # would be unable to write to a directory created by a normal user. run.sh
+    # resolves these; the 10001 fallback is the account baked into the image.
+    user: "${NIMBUS_UID:-10001}:${NIMBUS_GID:-10001}"
     depends_on:
       db:
         condition: service_healthy
     # Deliberately no `ports:` — nginx is the only way in.
+    volumes:
+      # The hosting product's storage. Must be a filesystem with Unix
+      # permissions (ext4/xfs) — exFAT and FAT32 cannot express file ownership.
+      - ${NIMBUS_SITES_DIR:-./data/sites}:/var/nimbus/sites
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-600000}
+      APP_SESSION_TTL_MINUTES: ${APP_SESSION_TTL_MINUTES:-720}
+      APP_SECURE_COOKIES: ${APP_SECURE_COOKIES:-false}
+      APP_BCRYPT_STRENGTH: ${APP_BCRYPT_STRENGTH:-12}
+      APP_SITES_QUOTA_BYTES: ${APP_SITES_QUOTA_BYTES:-104857600}
+      APP_SITES_MAX_FILE_BYTES: ${APP_SITES_MAX_FILE_BYTES:-10485760}
+      APP_SITES_MAX_PER_USER: ${APP_SITES_MAX_PER_USER:-3}
       APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - dbnet
       - webnet
@@ -87,8 +135,14 @@ services:
       # Loopback only. Put a TLS terminator (cloudflared / Caddy / nginx)
       # in front of this; change to 0.0.0.0 only if you mean it.
       - "127.0.0.1:8080:80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - webnet
+      - sitenet
     security_opt:
       - no-new-privileges:true
     cap_drop: [ALL]
@@ -98,12 +152,24 @@ services:
       - /var/cache/nginx
       - /var/run
       - /tmp
+    deploy:
+      resources:
+        limits:
+          # Static files and a reverse proxy. Measured idle usage is ~8MB with
+          # worker_processes pinned.
+          memory: 128m
 
 networks:
   dbnet:
     # internal: no route to the internet, and no host exposure.
     internal: true
   webnet: {}
+  sitenet:
+    # Customer site containers live here. `internal` denies them outbound
+    # internet access entirely, so a compromised site cannot phone home or be
+    # used to attack anything else. They are reachable only from `web`.
+    name: nimbus-core_sitenet
+    internal: true
 
 volumes:
   pgdata: {}

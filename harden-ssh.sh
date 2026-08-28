@@ -14,6 +14,10 @@ set -euo pipefail
 
 DROPIN="/etc/ssh/sshd_config.d/99-nimbus-hardening.conf"
 DRY_RUN=0
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  sed -n '2,12p' "$0" | sed 's/^#//'
+  exit 0
+fi
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
 c_red() { printf '\033[31m%s\033[0m\n' "$*"; }
@@ -71,7 +75,11 @@ LoginGraceTime 20
 # --- reduce attack surface ---
 X11Forwarding no
 AllowAgentForwarding no
-AllowTcpForwarding no
+# 'local' not 'no': the web GUI binds to 127.0.0.1 on this host by design, so
+# `ssh -L 8080:127.0.0.1:8080` is the supported way to reach it. That needs
+# local forwarding. Reverse forwarding (-R), which could expose this box
+# outward through someone else's machine, stays denied.
+AllowTcpForwarding local
 PermitTunnel no
 UsePAM yes
 
@@ -84,7 +92,11 @@ ClientAliveInterval 300
 ClientAliveCountMax 2
 
 # --- modern crypto only ---
-KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512
+# Post-quantum hybrids first. A passive attacker can record today's session
+# and decrypt it later once a quantum computer exists ("store now, decrypt
+# later"); the hybrids defeat that while staying safe if the PQ half is ever
+# broken. Classical curve25519 follows for older clients.
+KexAlgorithms mlkem768x25519-sha256,sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512
 Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
 HostKeyAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256

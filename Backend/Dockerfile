@@ -7,14 +7,18 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /build
 
-# Dependency layer: only re-resolves when the POM changes.
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
+RUN chmod +x mvnw
 
-# Source layer
 COPY src/ src/
-RUN ./mvnw -B -q clean package -DskipTests \
+
+# A persistent ~/.m2 cache mount survives across builds, so dependencies are
+# downloaded once rather than on every layer invalidation. (dependency:go-offline
+# is deliberately avoided here - it resolves far more than the build needs and
+# fails hard on a single flaky artifact.)
+RUN --mount=type=cache,target=/root/.m2,sharing=locked \
+    ./mvnw -B clean package -DskipTests \
  && mv target/*.jar /build/app.jar
 
 ########################################
@@ -33,6 +37,13 @@ RUN groupadd --system --gid 10001 nimbus \
 
 WORKDIR /app
 COPY --from=build --chown=root:root --chmod=444 /build/app.jar /app/app.jar
+
+# Customer site files. Created here so that when Docker first populates the
+# bind mount / volume it inherits this ownership, letting the app write as
+# UID 10001 without the host directory having to be chowned by hand.
+RUN mkdir -p /var/nimbus/sites \
+ && chown -R 10001:10001 /var/nimbus \
+ && chmod 755 /var/nimbus /var/nimbus/sites
 
 USER 10001:10001
 EXPOSE 8080

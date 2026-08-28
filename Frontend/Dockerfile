@@ -4,6 +4,9 @@ FROM nginx:stable
 # Drop the stock welcome site; ship only our config.
 RUN rm -f /etc/nginx/conf.d/default.conf
 
+# Replaces the image's worker_processes=auto; see the file for why.
+COPY nginx/main-nginx.conf     /etc/nginx/nginx.conf
+
 COPY nginx/00-ratelimit.conf   /etc/nginx/conf.d/00-ratelimit.conf
 COPY nginx/10-nimbus-gui.conf  /etc/nginx/conf.d/10-nimbus-gui.conf
 COPY public/                   /usr/share/nginx/html/

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Websites - Nimbus</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body data-requires-auth="1">
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Websites</span>
+      </div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>Storage</h2>
+        <div id="quotaMeter"></div>
+        <div class="toast"><span id="quotaText" class="mono">...</span></div>
+        <div class="toast">Sites: <span id="siteLimit" class="mono">...</span></div>
+
+        <form id="newSiteForm" class="form mt-14">
+          <h3>New website</h3>
+          <input class="input" id="slug" type="text"
+                 placeholder="site-name" pattern="[a-z0-9][a-z0-9-]{1,30}" required />
+          <button class="btn btn-primary" type="submit">Create website</button>
+        </form>
+        <p class="small mt-10">
+          3-32 characters: lowercase letters, digits and hyphens. This becomes the
+          address, so pick carefully - it cannot be renamed.
+        </p>
+        <div id="siteToast" class="toast" hidden></div>
+      </div>
+
+      <div class="card">
+        <h2>Your Websites</h2>
+        <div id="siteList"></div>
+      </div>
+    </div>
+
+    <div class="card mt-14" id="fileCard" hidden>
+      <h2>Files - <span id="fileSiteName" class="mono"></span></h2>
+      <p class="small">
+        Live at <a id="siteLink" class="mono" href="#" target="_blank" rel="noopener noreferrer"></a>.
+        Upload an <span class="mono">index.html</span> to replace the placeholder page.
+      </p>
+
+      <form id="uploadForm" class="form mt-12">
+        <input class="input" id="fileInput" type="file" required />
+        <input class="input" id="destPath" type="text"
+               placeholder="Destination path (optional, e.g. css/style.css)" />
+        <button class="btn btn-primary" type="submit">Upload</button>
+      </form>
+      <div id="uploadToast" class="toast" hidden></div>
+
+      <hr />
+      <h3>Uploaded files</h3>
+      <div id="fileList"></div>
+    </div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script src="/assets/sites.js"></script>
+</body>
+</html>

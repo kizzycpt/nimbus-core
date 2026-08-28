@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tickets - Nimbus</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body data-requires-auth="1">
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Tickets</span>
+      </div>
+      <div class="links">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>Raise a Ticket</h2>
+        <form id="ticketForm" class="form">
+          <input class="input" id="subject" type="text"
+                 placeholder="Short summary" maxlength="120" required />
+          <select class="input" id="kind">
+            <option value="HELP">I need help with something</option>
+            <option value="CHANGE">I am requesting a change</option>
+          </select>
+          <textarea class="input" id="body" rows="6"
+                    placeholder="What is going on?" maxlength="4000" required></textarea>
+          <button class="btn btn-primary" type="submit">Submit ticket</button>
+        </form>
+        <div id="ticketToast" class="toast" hidden></div>
+      </div>
+
+      <div class="card">
+        <h2>Your Tickets</h2>
+        <div id="ticketList"></div>
+      </div>
+    </div>
+
+    <div class="card mt-14" id="ticketDetail" hidden></div>
+  </div>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/app.js"></script>
+  <script src="/assets/tickets.js"></script>
+</body>
+</html>

@@ -1,87 +1,128 @@
 package com.nimbus.api.user;
 
-import org.springframework.security.core.Authentication;
-import java.util.Map;
+import com.nimbus.api.session.SessionService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.ResponseEntity;
-import com.nimbus.api.jwt.JwtUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.util.StringUtils;
+
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @RestController
 public class UserController {
 
+    /** Deliberately narrow: these end up in URLs, logs and ticket listings. */
+    private static final Pattern USERNAME = Pattern.compile("^[A-Za-z0-9._-]{3,32}$");
+    private static final int MIN_PASSWORD_LENGTH = 10;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final SessionService sessions;
+    private final long defaultStorageQuota;
 
     public UserController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtUtil jwtUtil) {
+                          SessionService sessions,
+                          @Value("${app.sites.default-quota-bytes:104857600}") long defaultStorageQuota) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
+        this.sessions = sessions;
+        this.defaultStorageQuota = defaultStorageQuota;
     }
-    @GetMapping("/me")
-    public Map<String, String> me(Authentication authentication) {
-        return Map.of("username", authentication.getName());
-    }
+
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        if (!StringUtils.hasText(user.getUsername()) || !StringUtils.hasText(user.getPassword())) {
-            return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("Username and password must not be empty");
+    public ResponseEntity<?> register(@RequestBody LoginRequest request,
+                                      HttpServletRequest servletRequest) {
+
+        String username = request.getUsername() == null ? "" : request.getUsername().trim();
+        String password = request.getPassword() == null ? "" : request.getPassword();
+
+        if (!USERNAME.matcher(username).matches()) {
+            return error(HttpStatus.BAD_REQUEST,
+                    "Username must be 3-32 characters, letters/digits/dot/underscore/hyphen only");
         }
+        if (password.length() < MIN_PASSWORD_LENGTH) {
+            return error(HttpStatus.BAD_REQUEST,
+                    "Password must be at least " + MIN_PASSWORD_LENGTH + " characters");
+        }
+
         try {
-            String hashedPassword = passwordEncoder.encode(user.getPassword());
+            User account = new User(username, passwordEncoder.encode(password));
+            account.setStorageQuotaBytes(defaultStorageQuota);
+            User saved = userRepository.save(account);
 
-            User newUser = new User(
-                user.getUsername(),
-                hashedPassword
-            );
+            // Registering logs you straight in — one fewer round trip, and the
+            // cookie is issued through exactly the same path as a normal login.
+            String token = sessions.issue(saved, servletRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .header(HttpHeaders.SET_COOKIE, sessions.cookieFor(token).toString())
+                    .body(UserResponse.of(saved));
 
-            User savedUser = userRepository.save(newUser);
-
-            return ResponseEntity.ok(
-                new UserResponse(
-                    savedUser.getId(),
-                    savedUser.getUsername()
-                )
-            );
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body("Username already exists");
+            return error(HttpStatus.CONFLICT, "Username already exists");
         }
     }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request,
+                                   HttpServletRequest servletRequest) {
+
         if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return error(HttpStatus.BAD_REQUEST, "Username and password are required");
         }
-        Optional<User> found = userRepository.findByUsername(request.getUsername());
+
+        Optional<User> found = userRepository.findByUsername(request.getUsername().trim());
 
         if (found.isEmpty()) {
             // Burn an equivalent BCrypt round anyway. Returning early here would
             // make "no such user" measurably faster than "wrong password" and
             // leak which usernames exist.
             passwordEncoder.encode(request.getPassword());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return error(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
         User user = found.get();
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return error(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
-        return ResponseEntity.ok(Map.of("token", token));
+        String token = sessions.issue(user, servletRequest);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessions.cookieFor(token).toString())
+                .body(UserResponse.of(user));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        readSessionCookie(request).ifPresent(sessions::revoke);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessions.clearingCookie().toString())
+                .body(Map.of("status", "logged out"));
+    }
+
+    private static Optional<String> readSessionCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return Optional.empty();
+        }
+        for (var cookie : request.getCookies()) {
+            if (SessionService.COOKIE_NAME.equals(cookie.getName())) {
+                return Optional.ofNullable(cookie.getValue());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(Map.of("message", message));
     }
 }

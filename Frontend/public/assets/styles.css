@@ -158,3 +158,37 @@ hr{ border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .mt-12 { margin-top: 12px; }
 .mt-14 { margin-top: 14px; }
 .card-form { max-width: 560px; margin: 0 auto; }
+
+/* --- additions for account settings, tickets and the status page --- */
+h3{ font-size: 15px; margin: 0 0 8px; color: var(--gold-2); font-weight: 700; }
+
+.badge.ok{ border-color: var(--border-strong); color: var(--gold-1); }
+.badge.err{ border-color: rgba(229,72,77,.55); color: #ffb4b6; }
+
+/* textarea and select inherit .input, but need their own box behaviour */
+textarea.input{ resize: vertical; min-height: 84px; line-height: 1.5; font: inherit; }
+select.input{ appearance: none; cursor: pointer; }
+select.input option{ background: var(--card); color: var(--text); }
+
+/* JSON blobs and long user-agent strings must not stretch the card */
+.toast.mono{ white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.toast a{ color: var(--gold-2); text-decoration: none; }
+.toast a:hover{ text-decoration: underline; }
+
+/* --- storage meter (websites page) --- */
+.meter{
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(212,175,55,.06);
+  overflow: hidden;
+}
+.meter-fill{
+  height: 100%;
+  background: var(--gold-grad);
+  transition: width .3s ease;
+}
+.meter-fill.meter-full{ background: var(--danger); }
+
+input[type="file"].input{ padding: 8px 10px; cursor: pointer; }

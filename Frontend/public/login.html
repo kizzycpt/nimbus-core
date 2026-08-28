@@ -3,37 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login - Nimbus</title>
+  <title>Sign In - Nimbus</title>
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
 <body>
   <div class="nav">
     <div class="nav-inner">
-      <div class="brand"><span class="mono">Nimbus</span><span class="badge">Login</span></div>
+      <div class="brand">
+        <span class="mono">Nimbus</span>
+        <span class="badge">Sign In</span>
+      </div>
       <div class="links">
         <a class="btn" href="/">Home</a>
-        <a class="btn" href="/dashboard.html">Dashboard</a>
-        <a class="btn" href="/register.html">Register</a>
-        <button id="logoutBtn" class="btn btn-danger" hidden>Logout</button>
+        <a class="btn" href="/status.html">Status</a>
+        <a class="btn" href="/dashboard.html" data-auth="in" hidden>Dashboard</a>
+        <a class="btn" href="/sites.html" data-auth="in" hidden>Websites</a>
+        <a class="btn" href="/tickets.html" data-auth="in" hidden>Tickets</a>
+        <a class="btn" href="/account.html" data-auth="in" hidden>Account</a>
+        <a class="btn" href="/login.html" data-auth="out" hidden>Login</a>
+        <a class="btn" href="/register.html" data-auth="out" hidden>Register</a>
+        <button id="logoutBtn" class="btn btn-danger" data-auth="in" hidden>Logout</button>
       </div>
     </div>
   </div>
 
   <div class="container">
     <div class="card card-form">
-      <h2>Sign in</h2>
-      <p>Uses your Nimbus Core API login endpoint.</p>
-
+      <h2>Sign In</h2>
       <form id="loginForm" class="form">
-        <input class="input" id="username" type="text" placeholder="Username" autocomplete="username" required />
-        <input class="input" id="password" type="password" placeholder="Password" autocomplete="current-password" required />
-        <button class="btn btn-primary" type="submit">Login</button>
+        <input class="input" id="username" type="text" placeholder="Username"
+               autocomplete="username" required />
+        <input class="input" id="password" type="password" placeholder="Password"
+               autocomplete="current-password" required />
+        <button class="btn btn-primary" id="submitBtn" type="submit">Sign In</button>
       </form>
-
       <div id="toast" class="toast" hidden></div>
-      <p class="small mt-12">
-        Need an account? <a class="mono" href="/register.html">Register</a>
-      </p>
+      <p class="small mt-12">No account? <a href="/register.html">Register</a>.</p>
     </div>
   </div>
 
